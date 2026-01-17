@@ -1,0 +1,57 @@
+CORREÇÕES MANUAIS NECESSÁRIAS NO ShifterAnalog.cpp
+====================================================
+
+PROBLEMA 1: setMode() usa getFreeCsPins()[0] em vez do CS configurado
+----------------------------------------------------------
+Arquivo: Firmware/FFBoard/UserExtensions/Src/ShifterAnalog.cpp
+Linha: 202
+
+SUBSTITUIR:
+	g27ShifterButtonClient = std::make_unique<G27ShifterButtonClient>(external_spi.getFreeCsPins()[0]);
+
+POR:
+	// Use the configured CS pin (cs_pin_num is 1-indexed, getCsPin uses 0-indexed)
+	OutputPin* csPin = external_spi.getCsPin(cs_pin_num - 1);
+	if (csPin == nullptr) {
+		// Fallback to first free pin if configured pin is invalid
+		auto& freePins = external_spi.getFreeCsPins();
+		if (!freePins.empty()) {
+			csPin = &freePins[0];
+		}
+	}
+	if (csPin != nullptr) {
+		g27ShifterButtonClient = std::make_unique<G27ShifterButtonClient>(*csPin);
+	}
+
+
+PROBLEMA 2: Verificação de isTaken() impede leituras quando SPI Buttons está ativo
+----------------------------------------------------------
+Arquivo: Firmware/FFBoard/UserExtensions/Src/ShifterAnalog.cpp
+Linha: 296
+
+SUBSTITUIR:
+	if (external_spi.isTaken() || !ready) {
+		return; // Don't wait, just return
+	}
+
+POR:
+	if (!ready) {
+		return; // Don't wait, just return if already reading
+	}
+
+E atualizar o comentário na linha 295:
+	// Start a new DMA read if ready (exactly like SPI_Buttons)
+	// Don't check isTaken() - beginSpiTransfer() will handle semaphore blocking
+
+
+EXPLICAÇÃO DOS PROBLEMAS:
+-------------------------
+
+1. O setMode() estava pegando o primeiro CS livre, não o configurado (CS1 = PB12).
+   Se o SPI Buttons reservar um CS, o ShifterAnalog pode pegar um CS diferente.
+
+2. A verificação de isTaken() impede o ShifterAnalog de tentar iniciar leituras
+   quando o SPI Buttons está ativo, mesmo que o semáforo seja gerenciado automaticamente.
+
+3. O aro conectado fisicamente pode estar interferindo no MISO mesmo sem estar
+   configurado, especialmente se o CS (PD8) estiver flutuando.

@@ -11,7 +11,12 @@ extern SPI_HandleTypeDef hspi1;
 SPIPort motor_spi{hspi1,motor_spi_cspins,84000000,false};
 
 #ifdef EXT3_SPI_PORT
-static const std::vector<OutputPin> ext3_spi_cspins{OutputPin(*SPI3_SS1_GPIO_Port, SPI3_SS1_Pin), OutputPin(*SPI3_SS2_GPIO_Port, SPI3_SS2_Pin),OutputPin(*SPI3_SS3_GPIO_Port, SPI3_SS3_Pin)};
+// SPI3 CS pins - native SPI3 pins only
+static const std::vector<OutputPin> ext3_spi_cspins{
+	OutputPin(*SPI3_SS1_GPIO_Port, SPI3_SS1_Pin),  // PA15 - CS1 (used for G27 wheel rim)
+	OutputPin(*SPI3_SS2_GPIO_Port, SPI3_SS2_Pin),  // PD2  - CS2
+	OutputPin(*SPI3_SS3_GPIO_Port, SPI3_SS3_Pin)   // PD3  - CS3
+};
 extern SPI_HandleTypeDef EXT3_SPI_PORT;
 SPIPort ext3_spi{hspi3,ext3_spi_cspins,42000000,true};
 #endif
@@ -75,7 +80,7 @@ const PWMConfig MotorPWM::timerConfig =
 	.rcpwm_chan = 1,
 
 	.dualpwm1 = 1,
-	.dualpwm2 = 2,
+	.dualpwm2 = 3,
 
 	.timer = &TIM_PWM,
 	.timerFreq = 168000000

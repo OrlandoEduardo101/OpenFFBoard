@@ -20,8 +20,11 @@ public:
 		: port{&port}, pin{pin} {}
 
 
-	bool operator==(const GpioPin& b){
+	bool operator==(const GpioPin& b) const {
 		return(this->port == b.port && this->pin == b.pin);
+	}
+	bool operator!=(const GpioPin& b) const {
+		return !(*this == b);
 	}
 	const GPIO_TypeDef* getPort() const {return port;}
 	uint16_t getPin() const {return pin;}
@@ -40,7 +43,7 @@ public:
 	}
 
 	void reset() const {
-		write(false);      
+		write(false);
 	}
 
 	void write(bool state) const {

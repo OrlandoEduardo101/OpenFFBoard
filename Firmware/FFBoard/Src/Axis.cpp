@@ -243,6 +243,11 @@ void Axis::restoreFlash(){
 		setExpo((int8_t)(pp1 & 0xff));
 	}
 
+	// Após restoreFlash completo, NÃO chamar autoCenterOnIndex aqui
+	// Isso pode bloquear a inicialização do USB. A centralização será feita
+	// em um momento mais apropriado, se necessário.
+	// autoCenterOnIndex(); // Comentado para evitar bloqueio durante inicialização
+
 }
 // Saves parameters to flash.
 void Axis::saveFlash(){
@@ -426,6 +431,9 @@ void Axis::setDrvType(uint8_t drvtype)
 		drv->startMotor();
 	}
 	cpp_freertos::CriticalSection::Exit();
+
+	// Após setDrvType, tentar auto-centralizar se PWM dual (caso encoder já esteja configurado)
+	// Nota: Será chamado no restoreFlash após tudo estar inicializado
 }
 
 #ifdef TMC4671DRIVER
@@ -439,7 +447,7 @@ void Axis::setupTMC4671()
 	tmclimits.pid_torque_flux = getPower();
 	drv->setLimits(tmclimits);
 	//drv->setBiquadTorque(TMC4671Biquad(tmcbq_500hz_07q_25k));
-	
+
 
 	// Enable driver
 
@@ -469,6 +477,9 @@ void Axis::setEncType(uint8_t enctype)
 	//int32_t scaledEnc = scaleEncValue(angle, degreesOfRotation);
 	// reset metrics
 	this->resetMetrics(angle);
+
+	// Após setEncType, tentar auto-centralizar se PWM dual
+	// Nota: Pode ser chamado antes do driver estar pronto, então também chamamos no restoreFlash
 
 }
 
@@ -622,6 +633,20 @@ void Axis::calculateAxisEffects(bool ffb_on){
 		axisEffectTorque -= frictionFilter.process(clip<float, int32_t>(force, -intFxClip, intFxClip));
 	}
 
+}
+
+/**
+ * Auto-center using encoder Z index for PWM dual mode
+ * DESATIVADO: Esta função está temporariamente desativada devido a problemas de implementação.
+ * A centralização automática não está funcionando corretamente e foi desativada para evitar
+ * movimentos indesejados do volante.
+ *
+ * Para centralizar, use o configurator manualmente após o reset.
+ */
+void Axis::autoCenterOnIndex() {
+	// Função desativada - não faz nada
+	// A centralização deve ser feita manualmente pelo configurator
+	return;
 }
 
 /**

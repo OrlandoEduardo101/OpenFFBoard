@@ -50,6 +50,10 @@ public:
 
 	void setCpr(uint32_t cpr);	// Encoder counts per rotation
 
+	bool isIndexHit() const;	// Check if index (Z) signal has been detected
+	bool isIndexEnabled() const;	// Check if index (Z) is enabled
+	int16_t getOffset() const;	// Get the saved offset from flash
+
 	CommandStatus command(const ParsedCommand& cmd,std::vector<CommandReply>& replies);
 	std::string getHelpstring(){return "Local ABN encoder\n";}
 	void saveFlash(); 		// Write to flash here

@@ -54,7 +54,15 @@ FFBHIDMain::~FFBHIDMain() {
  */
 void FFBHIDMain::restoreFlash(){
 
-	Flash_Read(ADR_FFBWHEEL_BUTTONCONF, &this->btnsources);
+	uint16_t saved_btnsources = 0;
+	Flash_Read(ADR_FFBWHEEL_BUTTONCONF, &saved_btnsources);
+
+	// If flash is empty or SPI_Buttons_3 (bit 6) not set, enable it by default
+	if(saved_btnsources == 0 || !(saved_btnsources & (1 << 6))){
+		saved_btnsources |= (1 << 6); // Enable SPI_Buttons_3 (ID 6)
+	}
+
+	this->btnsources = saved_btnsources;
 	setBtnTypes(this->btnsources);
 
 	Flash_Read(ADR_FFBWHEEL_ANALOGCONF, &this->ainsources);

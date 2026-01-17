@@ -130,6 +130,18 @@ void EncoderLocal::setCpr(uint32_t cpr){
 	this->cpr = cpr;
 }
 
+bool EncoderLocal::isIndexHit() const {
+	return indexHit;
+}
+
+bool EncoderLocal::isIndexEnabled() const {
+	return useIndex;
+}
+
+int16_t EncoderLocal::getOffset() const {
+	return offset;
+}
+
 CommandStatus EncoderLocal::command(const ParsedCommand& cmd,std::vector<CommandReply>& replies){
 	switch(static_cast<EncoderLocal_commands>(cmd.cmdId)){
 	case EncoderLocal_commands::cpr:

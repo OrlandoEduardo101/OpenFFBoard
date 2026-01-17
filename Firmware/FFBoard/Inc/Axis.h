@@ -278,6 +278,8 @@ private:
 
 	void setExpo(int val);
 
+	void autoCenterOnIndex(); // Auto-center using encoder Z index for PWM dual mode
+
 
 	GearRatio_t gearRatio;
 

@@ -677,7 +677,7 @@ static void MX_SPI3_Init(void)
   hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi3.Init.NSS = SPI_NSS_SOFT;
-  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -1374,18 +1374,24 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(SPI1_SS1_GPIO_Port, SPI1_SS1_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SPI1_SS2_Pin|SPI1_SS3_Pin|SPI2_NSS_Pin, GPIO_PIN_RESET);
+  // SPI2_NSS (CS1) is active low CS pin - initialize to HIGH (inactive) to prevent interference
+  HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, SPI1_SS2_Pin|SPI1_SS3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, DRV_ENABLE_Pin|DRV_BRAKE_Pin|DRV_GP1_Pin|LED_CLIP_Pin
                           |LED_ERR_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, SPI2_SS2_Pin|SPI2_SS3_Pin|SPI3_SS2_Pin|SPI3_SS3_Pin
-                          |CAN_S_Pin|GP1_Pin|LED_SYS_Pin, GPIO_PIN_RESET);
+  // SPI2_SS2 and SPI2_SS3 are active low CS pins - initialize to HIGH (inactive) to prevent interference
+  HAL_GPIO_WritePin(GPIOD, SPI2_SS2_Pin|SPI2_SS3_Pin, GPIO_PIN_SET);
+  // SPI3_SS2 and SPI3_SS3 are active low CS pins - initialize to HIGH (inactive) to prevent interference
+  HAL_GPIO_WritePin(GPIOD, SPI3_SS2_Pin|SPI3_SS3_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOD, CAN_S_Pin|GP1_Pin|LED_SYS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SPI3_SS1_GPIO_Port, SPI3_SS1_Pin, GPIO_PIN_RESET);
+  // SPI3_SS1 is active low CS pin - initialize to HIGH (inactive) to prevent interference
+  HAL_GPIO_WritePin(SPI3_SS1_GPIO_Port, SPI3_SS1_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : DIN7_Pin DIN6_Pin DIN5_Pin DIN4_Pin
                            DIN3_Pin */
@@ -1517,6 +1523,15 @@ void ExitDFU(void){
 
 void RebootDFU(void) {
 	//*((unsigned long *)0x2001FFF0) = 0xDEADBEEF; // ram end. see startup assembly for jumps
+	// Para os timers PWM antes de entrar em DFU para evitar que o motor gire
+	// TIM_PWM é definido como htim1 (TIM1)
+	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_4);
+	HAL_TIM_Base_Stop(&htim1);
+	HAL_Delay(10); // Pequeno delay para garantir que os timers param
+
 	*((unsigned long *)DFU_JUMP_MAGIC_ADR) = 0xDEADBEEF; // ram end. see startup assembly for jumps
 	NVIC_SystemReset();
 }
