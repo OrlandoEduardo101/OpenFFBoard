@@ -401,5 +401,5 @@ Quando dois 74HC165 estão na mesma linha MISO, ambos tentam controlar a linha s
 ---
 
 *Report Date: January 2026*
-*Board: OpenFFBoard F407VG*
+*Board: Generic STM32F407VET6*
 *Components: G27 Wheel Rim (8 buttons) + G27 Shifter*

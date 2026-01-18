@@ -2,7 +2,7 @@
 
 ## 🎯 Summary
 
-The **G27 Shifter buttons did not work** when using the official **ShifterAnalog "G27 Shifter H-pattern" mode** on OpenFFBoard F407VG. After code analysis and modifications, the issue was identified and fixed.
+The **G27 Shifter buttons did not work** when using the official **ShifterAnalog "G27 Shifter H-pattern" mode** on a generic [STM32F407VET6 board](http://pt.aliexpress.com/item/1005006882009420.html) running OpenFFBoard firmware. After code analysis and modifications, the issue was identified and fixed.
 
 ---
 
@@ -328,7 +328,7 @@ void ShifterAnalog::G27ShifterButtonClient::startRead() {
 
 | Parameter | Value |
 |-----------|-------|
-| Board | OpenFFBoard F407VG |
+| Board | Generic STM32F407VET6 |
 | Shifter | Logitech G27 H-Pattern |
 | Connection | PB12 (CS), PB13 (SCK), PB14 (MISO) |
 | Voltage | 3.3V |
@@ -363,5 +363,5 @@ Após as correções, o câmbio G27 funciona perfeitamente:
 ---
 
 *Report Date: January 2026*
-*Board: OpenFFBoard F407VG*
+*Board: Generic STM32F407VET6*
 *Affected Feature: ShifterAnalog - G27 Shifter H-pattern mode*
