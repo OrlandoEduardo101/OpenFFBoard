@@ -90,6 +90,18 @@ If you also have a damaged PE13 and need to use PE11:
 // Change TIM1_CH3 (PE13) to TIM1_CH2 (PE11)
 ```
 
+#### 🎮 G27 Motor Torque Curve Tuning
+
+The G27 motors have specific characteristics that benefit from torque curve adjustment. For good force feedback response with minimal dead zone/backlash:
+
+| Parameter | Recommended Value | Notes |
+|-----------|-------------------|-------|
+| Torque Curve | **0.60 ~ 0.70** | Reduces dead zone, improves response |
+
+> **EN:** Setting the torque curve to 0.60-0.70 provides good FFB response with the G27 motors, reducing the "slack" feeling at center position.
+>
+> **PT:** Configurar a curva de torque em 0.60-0.70 proporciona boa resposta do FFB com os motores G27, reduzindo a sensação de "folga" na posição central.
+
 ### PT - Ligação do Motor
 
 O G27 usa um **motor DC** controlado via PWM através de um driver H-bridge (como BTS7960).
@@ -116,7 +128,7 @@ O G27 usa um **motor DC** controlado via PWM através de um driver H-bridge (com
 
 ### EN - Encoder Wiring
 
-The G27 uses an **optical quadrature encoder** for position feedback.
+The G27 originally uses an **optical quadrature encoder** (600 PPR) for position feedback.
 
 | Function | OpenFFBoard Pin | G27 Wire | Notes |
 |----------|-----------------|----------|-------|
@@ -126,13 +138,26 @@ The G27 uses an **optical quadrature encoder** for position feedback.
 | VCC | 5V | Red | Encoder power |
 | GND | GND | Black | Ground |
 
-#### Configuration / Configuração
+#### Option A: Original G27 Encoder (600 PPR)
 - Encoder Type: **ABN** (Quadrature)
 - CPR (Counts Per Revolution): **2400** (600 PPR x4)
 
+#### Option B: Magnetic Encoder Upgrade (MT6835) ⭐ Recommended
+
+I replaced the original encoder with a **MT6835 ABZ magnetic encoder** mounted on the motor shaft. This provides much higher resolution and better FFB precision.
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Encoder | MT6835 ABZ | Magnetic, high resolution |
+| CPR | **65535** | Maximum resolution |
+| Gear Ratio | **11:180** | Motor gear:Wheel gear teeth |
+| Mounting | [Thingiverse 1270001](https://www.thingiverse.com/thing:1270001) | 3D printed adapter (works with 555 motors too) |
+
+The gear ratio 11:180 represents the relationship between the motor pinion (11 teeth) and the main wheel gear (180 teeth).
+
 ### PT - Ligação do Encoder
 
-O G27 usa um **encoder óptico em quadratura** para feedback de posição.
+O G27 originalmente usa um **encoder óptico em quadratura** (600 PPR) para feedback de posição.
 
 | Função | Pino OpenFFBoard | Fio G27 | Notas |
 |--------|------------------|---------|-------|
@@ -141,6 +166,23 @@ O G27 usa um **encoder óptico em quadratura** para feedback de posição.
 | Index (Z) | - | - | Não usado no G27 |
 | VCC | 5V | Vermelho | Alimentação do encoder |
 | GND | GND | Preto | Terra |
+
+#### Opção A: Encoder Original do G27 (600 PPR)
+- Tipo do Encoder: **ABN** (Quadratura)
+- CPR (Contagens Por Revolução): **2400** (600 PPR x4)
+
+#### Opção B: Upgrade com Encoder Magnético (MT6835) ⭐ Recomendado
+
+Substituí o encoder original por um **encoder magnético MT6835 ABZ** montado no eixo do motor. Isso proporciona resolução muito maior e melhor precisão do FFB.
+
+| Parâmetro | Valor | Notas |
+|-----------|-------|-------|
+| Encoder | MT6835 ABZ | Magnético, alta resolução |
+| CPR | **65535** | Resolução máxima |
+| Relação de Engrenagens | **11:180** | Dentes engrenagem motor:aro |
+| Montagem | [Thingiverse 1270001](https://www.thingiverse.com/thing:1270001) | Adaptador impresso 3D (funciona com motores 555 também) |
+
+A relação 11:180 representa a proporção entre o pinhão do motor (11 dentes) e a engrenagem principal do aro (180 dentes).
 
 ---
 
@@ -329,8 +371,9 @@ O registrador 74HC165 **não tem saída tri-state**. Quando dois 74HC165 compart
 | Component | Interface | Pins | Power | Notes |
 |-----------|-----------|------|-------|-------|
 | **VBUS Fix** | Resistor | PA9 → 5V | - | ⚡ **10kΩ required for F407VG firmware** |
-| Motor | PWM | PE11 ⚠️ (PE13 default) | External PSU | H-bridge required |
-| Encoder | Quadrature | PA0, PA1 | 5V | ABN type |
+| Motor | PWM | PE11 ⚠️ (PE13 default) | External PSU | H-bridge required, torque curve 0.60-0.70 |
+| Encoder (Original) | Quadrature | PA0, PA1 | 5V | ABN type, CPR 2400 |
+| Encoder (MT6835) | Quadrature | PA0, PA1 | 5V | ABN type, CPR 65535, ratio 11:180 ⭐ |
 | Pedals | Analog | PA2, PA3, PA6 | 3.3V | Standard wiki connection |
 | Shifter | SPI2 | PB13, PB14, PB12 | 3.3V | G27 mode |
 | Wheel Rim | SPI3 | PC10, PC11, PA15 | 3.3V | Custom firmware required |
@@ -344,10 +387,12 @@ O registrador 74HC165 **não tem saída tri-state**. Quando dois 74HC165 compart
 1. **Motor Driver**
    - Type: PWM
    - PWM Pin: PE11 (or PE13 on working board)
+   - **Torque Curve: 0.60 ~ 0.70** (reduces dead zone)
 
 2. **Encoder**
    - Type: Local ABN
-   - CPR: 2400
+   - **Option A (Original):** CPR: 2400
+   - **Option B (MT6835):** CPR: 65535, Gear Ratio: 11:180
 
 3. **Pedals (Local Analog)**
    - Analog Source: Local Analog
@@ -370,10 +415,12 @@ O registrador 74HC165 **não tem saída tri-state**. Quando dois 74HC165 compart
 1. **Driver do Motor**
    - Tipo: PWM
    - Pino PWM: PE11 (ou PE13 em placa funcionando)
+   - **Curva de Torque: 0.60 ~ 0.70** (reduz zona morta)
 
 2. **Encoder**
    - Tipo: Local ABN
-   - CPR: 2400
+   - **Opção A (Original):** CPR: 2400
+   - **Opção B (MT6835):** CPR: 65535, Relação: 11:180
 
 3. **Pedais (Local Analog)**
    - Fonte Analógica: Local Analog
@@ -417,8 +464,8 @@ O registrador 74HC165 **não tem saída tri-state**. Quando dois 74HC165 compart
 
 | Component / Componente | Status | Windows Axes/Buttons |
 |------------------------|--------|----------------------|
-| Motor / Motor | ✅ Working / Funcionando | FFB enabled |
-| Encoder / Encoder | ✅ Working / Funcionando | Steering axis |
+| Motor / Motor | ✅ Working / Funcionando | FFB enabled (torque curve 0.60-0.70) |
+| Encoder / Encoder | ✅ Working / Funcionando | Steering axis (MT6835 65535 CPR) |
 | Pedals / Pedais | ✅ Working / Funcionando | 3 axes (throttle, brake, clutch) |
 | Shifter Gears / Marchas | ✅ Working / Funcionando | Buttons 1-7 (6 gears + reverse) |
 | Shifter Buttons / Botões Câmbio | ✅ Working / Funcionando | Buttons 8-19 (12 buttons) |
@@ -426,9 +473,16 @@ O registrador 74HC165 **não tem saída tri-state**. Quando dois 74HC165 compart
 
 **Total: 27 buttons + 7 gears (including reverse) + 3 pedal axes + FFB motor**
 
+### Encoder Upgrade Notes / Notas do Upgrade do Encoder
+
+> **EN:** The magnetic encoder MT6835 mounted with [this 3D printed adapter](https://www.thingiverse.com/thing:1270001) provides much better resolution and FFB feel compared to the original 600 PPR encoder. The adapter also works with 555 motors.
+>
+> **PT:** O encoder magnético MT6835 montado com [este adaptador impresso 3D](https://www.thingiverse.com/thing:1270001) proporciona resolução muito melhor e sensação do FFB comparado ao encoder original de 600 PPR. O adaptador também funciona com motores 555.
+
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *Date: January 2026*
 *Board: Generic STM32F407VET6*
 *Hardware: Logitech G27 Racing Wheel*
+*Encoder Upgrade: MT6835 ABZ Magnetic Encoder*
